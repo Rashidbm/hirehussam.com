@@ -1,0 +1,1 @@
+export async function getSnippets(){return {bodyEnd:[],bodyStart:[],headEnd:[],headStart:[]}};export const snippetsSorting={bodyEnd:[],bodyStart:[],headEnd:[],headStart:[]};
