@@ -562,6 +562,12 @@ void main(){
   
   
   const majlisTiers=[['.framer-187nhgb',.31],['.framer-1cu2ofb',.64],['.framer-tkqv5y',1]];
+  
+  let nearObserver;
+  function installNear(){
+    nearObserver??=new IntersectionObserver((entries,observer)=>{for(const entry of entries)if(entry.isIntersecting){entry.target.classList.add('is-near');observer.unobserve(entry.target)}},{rootMargin:'200% 0px'});
+    for(const el of document.querySelectorAll('#pricing,.hussam-palace'))if(!el.classList.contains('is-near'))nearObserver.observe(el);
+  }
   function installMajlis(){
     const pricing=document.getElementById('pricing');if(!pricing||pricing.dataset.majlis!==undefined)return;
     const cards=majlisTiers.map(([selector,reach])=>[pricing.querySelector(selector),reach]).filter(([card])=>card);
@@ -569,7 +575,7 @@ void main(){
     pricing.dataset.majlis='';
     cards.forEach(([card,reach])=>{
       const strip=document.createElement('div');strip.className='majlis-strip';strip.setAttribute('aria-hidden','true');
-      strip.innerHTML='<div class="majlis-rug"></div><img class="majlis-roll" src="/assets/majlis/roll.webp" alt="" decoding="async">';
+      strip.innerHTML='<div class="majlis-rug"></div><img class="majlis-roll" src="/assets/majlis/roll.webp" alt="" loading="lazy" decoding="async">';
       card.prepend(strip);
       let frame=0,shown=0;
       const set=value=>{shown=value;strip.style.setProperty('--shown',value.toFixed(4));strip.style.setProperty('--roll',reach>=1?String(Math.min(1,(1-value)*6)):'1')};
@@ -799,6 +805,7 @@ void main(){
     installMajlis();
     installRoshan();
     installRiyadh();
+    installNear();
     schedule();
   }
   function start(){

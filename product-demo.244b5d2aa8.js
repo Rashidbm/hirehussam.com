@@ -24,7 +24,8 @@
   const t=(ar,en)=>lang==='en'?en:ar,clamp=n=>Math.max(0,Math.min(1,n)),smooth=k=>k*k*(3-2*k),inOut=k=>k<.5?4*k*k*k:1-(2-2*k)**3/2;
   const span=(p,[a,b])=>clamp((p-a)/(b-a)),fade=(p,a,b)=>smooth(clamp((p-a)/(b-a)));
   section.setAttribute('aria-label',t('البحث غوص','Research is a dive'));
-  let layout=null,inView=false,raf=0;
+  
+  let layout=null,inView=false,raf=0,lastP=0,lateAt=0;
   const size=(el,w,h)=>{el.style.width=w.toFixed(1)+'px';el.style.height=h.toFixed(1)+'px'};
   const at=(el,x,y,extra='')=>{el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px)${extra}`};
   function measure(){
@@ -78,6 +79,7 @@
   }
   function render(p){
    if(!layout)measure();
+   lastP=p;
    const L=layout,{VW,VH}=L;
    if(reduced.matches){p=.96;for(const el of [...lines,sub,faces]){el.style.opacity='';el.style.transform=''}}
    const cam=camera(p,L)-L.top;
@@ -123,13 +125,17 @@
     
     
     const surfacing=reduced.matches?0:(1-wipe)*VH*.08,tilt=1-inOut(span(p,B.tilt)),lift=VH*.09*tilt-surfacing;
-    const arrive=reduced.matches?1:span(p,B.arrive),risen=1-(1-arrive)**3;
+    
+    
+    const ready=base.complete&&base.naturalWidth>0,late=lateAt?clamp((performance.now()-lateAt)/700):1;
+    const arrive=reduced.matches?1:ready?Math.min(span(p,B.arrive),late):0,risen=1-(1-arrive)**3;
+    if(late<1)schedule();
     const scale=` scale(${L.k.toFixed(5)})`;
     at(base,L.dx,L.dy+lift,scale);
     at(faces,L.dx+FACES[0]*L.ds,L.dy+FACES[1]*L.ds+lift,scale);
     at(hussam,L.dx+HUSSAM[0]*L.ds,L.dy+HUSSAM[1]*L.ds+lift*1.8+(1-risen)*VH,scale);
     
-    if(!reduced.matches)faces.style.opacity=Math.max(.001,fade(p,B.arrive[1]-.03,B.arrive[1]+.005)).toFixed(3);
+    if(!reduced.matches)faces.style.opacity=Math.max(.001,ready?fade(p,B.arrive[1]-.03,B.arrive[1]+.005):0).toFixed(3);
    }
    if(reduced.matches)return;
    
@@ -139,7 +145,9 @@
    place(breath,fade(p,.532,.556)*(1-fade(p,.584,.6)),-4);
    const out2=1-fade(p,.85,.866);
    place(empty,fade(p,.784,.808)*out2,-5);place(week,fade(p,.81,.834)*out2,4);
-   place(knows,fade(p,.893,.914),-4);place(sub,fade(p,.914,.936),3);
+   
+   const there=base.complete&&base.naturalWidth>0&&(!lateAt||performance.now()-lateAt>700)?1:0;
+   place(knows,fade(p,.893,.914)*there,-4);place(sub,fade(p,.914,.936)*there,3);
   }
   const progress=()=>{const rect=section.getBoundingClientRect();return clamp(-rect.top/Math.max(1,rect.height-innerHeight))};
   function tick(){raf=0;if(inView)render(progress())}
@@ -149,7 +157,10 @@
   addEventListener('resize',()=>{layout=null;schedule()},{passive:true});
   reduced.addEventListener('change',schedule);
   
-  new IntersectionObserver((entries,observer)=>{if(!entries.some(entry=>entry.isIntersecting))return;observer.disconnect();for(const image of section.querySelectorAll('img')){image.loading='eager';image.decode?.().catch(()=>{})}},{rootMargin:'150% 0px'}).observe(section);
+  
+  const fetchAll=images=>Promise.all(images.map(image=>{image.loading='eager';return image.decode?.().catch(()=>{})}));
+  new IntersectionObserver((entries,observer)=>{if(!entries.some(entry=>entry.isIntersecting))return;observer.disconnect();fetchAll([...sea.querySelectorAll('img')]).then(()=>fetchAll([...deck.querySelectorAll('img')]))},{rootMargin:'150% 0px'}).observe(section);
+  base.addEventListener('load',()=>{if(lastP>B.arrive[0])lateAt=performance.now();schedule()});
   
   document.fonts?.ready.then(()=>{layout=null;schedule()});
   measure();render(0);
