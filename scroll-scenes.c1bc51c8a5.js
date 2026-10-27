@@ -746,9 +746,7 @@ void main(){
       if(scene.name==='arcade'){
         
         if(third===undefined)continue;
-        
-        const dive=gap('dive',document.documentElement.classList.contains('has-dive'),'maze-1','marginTop');
-        renderArcade(scene,clamp((-box.top-dive)/Math.max(1,third-box.top-innerHeight-dive)));continue;
+        renderArcade(scene,clamp(-box.top/Math.max(1,third-box.top-innerHeight)));continue;
       }
       if(scene.name==='brain'){
         

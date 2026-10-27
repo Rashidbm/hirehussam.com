@@ -25,7 +25,7 @@
      
      scrollTo({top:scrollY+target.getBoundingClientRect().top+1,behavior});
     }else if(['maze','why-hussam','pricing','testimonial','cta'].includes(target.id)){
-     scrollTo({top:scrollY+target.getBoundingClientRect().top+(target.id==='maze'&&document.documentElement.classList.contains('has-dive')?innerHeight*.6:0),behavior});
+     scrollTo({top:scrollY+target.getBoundingClientRect().top,behavior});
     }else target.scrollIntoView({behavior,block:'start'});
    }
   }
@@ -41,8 +41,8 @@
    const top=document.getElementById('how-it-works').getBoundingClientRect().top;
    if(Math.abs(top+1)>2)scrollTo({top:scrollY+top+1,behavior:'instant'});
   }else if(['maze','why-hussam','pricing','testimonial','cta'].includes(id)){
-   const target=document.getElementById(id),past=id==='maze'&&document.documentElement.classList.contains('has-dive')?innerHeight*.6:0;
-   if(target&&Math.abs(target.getBoundingClientRect().top+past)>2)scrollTo({top:scrollY+target.getBoundingClientRect().top+past,behavior:'instant'});
+   const target=document.getElementById(id);
+   if(target&&Math.abs(target.getBoundingClientRect().top)>2)scrollTo({top:scrollY+target.getBoundingClientRect().top,behavior:'instant'});
   }
  }
  window.addEventListener('load',()=>requestAnimationFrame(correctDeepLink),{once:true});
