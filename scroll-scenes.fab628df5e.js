@@ -7,6 +7,13 @@
     {name:'dallah',section:'#maze',sticky:'.framer-pokk01'}
   ];
   const clamp=n=>Math.max(0,Math.min(1,n));
+  
+  
+  
+  
+  let raster=1;
+  const setRaster=()=>{raster=Math.min(3,Math.max(1,devicePixelRatio||1));document.documentElement.style.setProperty('--raster',String(raster))};
+  setRaster();
   const smooth=t=>t*t*(3-2*t),accelerate=t=>t*t*t;
   let frame=0,installFrame=0;
   
@@ -96,7 +103,8 @@
   
   function loadHeroZoom(scene){
     if(scene.zoomLoaded)return;scene.zoomLoaded=true;
-    [scene.parts.near,scene.parts.close].forEach(image=>{image.src=image.dataset.src;image.decode?.().catch(()=>{})});
+    
+    Promise.all([scene.parts.near,scene.parts.close].map(image=>{image.src=image.dataset.src;return image.decode?image.decode().catch(()=>{}):null})).then(()=>{scene.zoomReady=true;for(const image of [scene.parts.near,scene.parts.close])if(!+image.style.opacity)image.style.opacity='.001'});
     scene.parts.irisDesk.setAttribute('href',scene.parts.irisDesk.dataset.href);
     (window.requestIdleCallback||(fn=>setTimeout(fn,150)))(()=>prepareWhirl(scene),{timeout:1500});
   }
@@ -122,7 +130,7 @@
     const shown=(motion*smooth(clamp((progress-.33)/.04))).toFixed(3);
     const [near,close]=[parts.near,parts.close].map((image,i)=>{
       const [lx,ly,lw,lh]=heroLayers[i],sx=lw*z/heroImage.w,sy=lh*z/heroImage.h,X=x+(lx-heroKey.x)*z,Y=y+(ly-heroKey.y)*z;
-      image.style.transform=`translate(${X.toFixed(1)}px,${Y.toFixed(1)}px) scale(${sx.toFixed(5)},${sy.toFixed(5)})`;image.style.opacity=shown;
+      image.style.transform=`translate(${X.toFixed(1)}px,${Y.toFixed(1)}px) scale(${(sx*raster).toFixed(5)},${(sy*raster).toFixed(5)})`;image.style.opacity=+shown?shown:scene.zoomReady?'.001':'0';
       return {X,Y,sx,sy};
     });
     return {close,VW,VH};
@@ -455,6 +463,8 @@ void main(){
       game.active=entries.some(entry=>entry.isIntersecting);
       if(game.active)start();else{clearTimers();[...game.up.keys()].forEach(sink)}
     },{threshold:.35}).observe(board);
+    
+    new IntersectionObserver((entries,observer)=>{if(!entries.some(entry=>entry.isIntersecting))return;observer.disconnect();for(const name of [...arcadeCliches,'insight']){const image=new Image();image.src=`/assets/arcade/${name}.webp`;image.decode?.().catch(()=>{})}},{rootMargin:'150% 0px'}).observe(board);
     measure();
   }
   function renderArcade(scene,progress){
@@ -697,36 +707,46 @@ void main(){
         '<img class="riyadh-traffic is-white" src="/assets/riyadh/traffic-white.webp" alt="" width="2400" height="517" loading="lazy" decoding="async">'+
         '<img class="riyadh-traffic is-red" src="/assets/riyadh/traffic-red.webp" alt="" width="2400" height="517" loading="lazy" decoding="async"></div>';
       footer.append(scene);
-      new IntersectionObserver((entries,observer)=>{if(!entries.some(entry=>entry.isIntersecting))return;observer.disconnect();scene.classList.add('is-on')},{threshold:.4}).observe(scene);
+      
+      new IntersectionObserver(entries=>{for(const entry of entries){if(entry.intersectionRatio>=.4)scene.classList.add('is-on');else if(!entry.isIntersecting)scene.classList.remove('is-on')}},{threshold:[0,.4]}).observe(scene);
     }
   }
+  
+  
+  const gaps={};
+  const gap=(key,on,id,side)=>{if(gaps[key]?.[0]!==on)gaps[key]=[on,on?parseFloat(getComputedStyle(document.getElementById(id))[side])||0:0];return gaps[key][1]};
   function update(){
     frame=0;
+    
+    
+    const live=[],top=id=>document.getElementById(id)?.getBoundingClientRect().top;
     for(const scene of scenes){
       if(!scene.media?.isConnected)continue;
       const box=scene.element.getBoundingClientRect();
       if(scene.name!=='intro'&&(box.bottom<0||box.top>innerHeight*2))continue;
-      const endDistance=scene.end?document.querySelector(scene.end).getBoundingClientRect().top-box.top:0;
+      live.push({scene,box,end:scene.end?document.querySelector(scene.end).getBoundingClientRect().top:0,third:scene.name==='dallah'||scene.name==='arcade'?top('maze-3'):undefined,fourth:scene.name==='dallah'?top('maze-4'):undefined});
+    }
+    for(const {scene,box,end,third,fourth} of live){
+      const endDistance=scene.end?end-box.top:0;
       const travel=scene.end?Math.max(1,endDistance-innerHeight):Math.max(1,box.height-innerHeight);
       const progress=clamp(-box.top/travel);
       if(scene.name==='dallah'){
         
         
-        const start=document.getElementById('maze-3')?.getBoundingClientRect().top,end=document.getElementById('maze-4')?.getBoundingClientRect().top;
-        if(start!==undefined&&end!==undefined)renderDallah(scene,clamp((.58*innerHeight-start)/(end-start+.78*innerHeight)));
+        if(third!==undefined&&fourth!==undefined)renderDallah(scene,clamp((.58*innerHeight-third)/(fourth-third+.78*innerHeight)));
         continue;
       }
       if(scene.name==='arcade'){
         
-        const third=document.getElementById('maze-3');if(!third)continue;
+        if(third===undefined)continue;
         
-        const dive=document.documentElement.classList.contains('has-dive')?parseFloat(getComputedStyle(document.getElementById('maze-1')).marginTop)||0:0;
-        renderArcade(scene,clamp((-box.top-dive)/Math.max(1,third.getBoundingClientRect().top-box.top-innerHeight-dive)));continue;
+        const dive=gap('dive',document.documentElement.classList.contains('has-dive'),'maze-1','marginTop');
+        renderArcade(scene,clamp((-box.top-dive)/Math.max(1,third-box.top-innerHeight-dive)));continue;
       }
       if(scene.name==='brain'){
         
         
-        const tail=stacked()?parseFloat(getComputedStyle(document.getElementById('brain-5')).marginBottom)||0:0,span=Math.max(1,box.height-innerHeight-tail);
+        const tail=gap('stack',stacked(),'brain-5','marginBottom'),span=Math.max(1,box.height-innerHeight-tail);
         renderPalace(scene,clamp(-box.top/span));
         const k=tail?clamp((-box.top-span)/tail):0,card=scene.stickyEl;
         card.style.transform=k?`scale(${(1-.1*k).toFixed(4)})`:'';card.style.borderRadius=k?`${(40*k).toFixed(1)}px`:'';
@@ -785,6 +805,6 @@ void main(){
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
   window.addEventListener('scroll',schedule,{passive:true});
-  window.addEventListener('resize',install,{passive:true});
+  window.addEventListener('resize',()=>{setRaster();for(const key in gaps)delete gaps[key];install()},{passive:true});
   reduced.addEventListener('change',()=>{setStack();schedule()});
 })();

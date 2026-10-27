@@ -57,7 +57,8 @@
    screen.style.width=W0+'px';screen.style.height=H0+'px';
    const at=(point,center,zoom)=>[VW/2+(point[0]-center[0])*zoom,VH/2+(point[1]-center[1])*zoom];
    const c0=[(VW/2-ox)/s,(VH/2-oy)/s];
-   layout={VW,VH,tall,s,z1,c0,p0:at(AIM,c0,s),p1:at(AIM,rest,z1),W0,H0,open:[[left,top],[left+W0,top],[left+W0,top+H0],[left,top+H0]]};
+   const raster=Math.min(3,Math.max(1,devicePixelRatio||1));document.documentElement.style.setProperty('--raster',String(raster));
+   layout={VW,VH,tall,s,z1,c0,p0:at(AIM,c0,s),p1:at(AIM,rest,z1),W0,H0,raster,open:[[left,top],[left+W0,top],[left+W0,top+H0],[left,top+H0]]};
   }
   
   
@@ -89,9 +90,10 @@
    const zoom=s*Math.pow(z1/s,u),aim=[p0[0]+(p1[0]-p0[0])*u,p0[1]+(p1[1]-p0[1])*u];
    const center=[AIM[0]-(aim[0]-VW/2)/zoom,AIM[1]-(aim[1]-VH/2)/zoom];
    const toScreen=([x,y])=>[VW/2+(x-center[0])*zoom,VH/2+(y-center[1])*zoom];
-   const origin=toScreen([0,0]),corner=toScreen(MID.rect);
-   base.style.transform=`translate(${origin[0].toFixed(2)}px,${origin[1].toFixed(2)}px) scale(${zoom.toFixed(5)})`;
-   mid.style.transform=`translate(${corner[0].toFixed(2)}px,${corner[1].toFixed(2)}px) scale(${(MID.rect[2]*zoom/MID.size[0]).toFixed(5)},${(MID.rect[3]*zoom/MID.size[1]).toFixed(5)})`;
+   
+   const origin=toScreen([0,0]),corner=toScreen(MID.rect),density=layout.raster;
+   base.style.transform=`translate(${origin[0].toFixed(2)}px,${origin[1].toFixed(2)}px) scale(${(zoom*density).toFixed(5)})`;
+   mid.style.transform=`translate(${corner[0].toFixed(2)}px,${corner[1].toFixed(2)}px) scale(${(MID.rect[2]*zoom/MID.size[0]*density).toFixed(5)},${(MID.rect[3]*zoom/MID.size[1]*density).toFixed(5)})`;
    const quad=SCREEN.map(([x,y])=>toScreen([x/100*OFFICE[0],y/100*OFFICE[1]]));
    
    const k=reduced.matches?1:inOut(clamp((p-b.open[0])/(b.open[1]-b.open[0])));
@@ -120,18 +122,23 @@
   
   
   const diving=()=>section.classList.contains('has-dive');
-  function setDive(){const on=!reduced.matches&&!!next&&!!dot;section.classList.toggle('has-dive',on);if(!on&&next){next.style.clipPath='';next.classList.add('is-open')}layout=null}
+  
+  
+  let clipNow=null,tailH=null;
+  const setClip=value=>{if(value!==clipNow){clipNow=value;next.style.clipPath=value}};
+  const tailHeight=()=>tailH??(tailH=tailEl.offsetHeight);
+  function setDive(){const on=!reduced.matches&&!!next&&!!dot;section.classList.toggle('has-dive',on);tailH=null;if(!on&&next){setClip('');next.classList.add('is-open')}layout=null}
   function renderDive(){
    if(!diving())return;
-   const rect=section.getBoundingClientRect(),tail=tailEl.offsetHeight,t=clamp((-rect.top-(rect.height-innerHeight-tail))/Math.max(1,tail));
+   const rect=section.getBoundingClientRect(),tail=tailHeight(),t=clamp((-rect.top-(rect.height-innerHeight-tail))/Math.max(1,tail));
    if(t>=.5&&!next.classList.contains('is-open')){next.classList.add('is-open');dispatchEvent(new Event('hussam:desk'))}
-   if(t>=1){next.style.clipPath='';return}
-   if(t<=0){next.style.clipPath='circle(0px at 50% 0px)';return}
+   if(t>=1){setClip('');return}
+   if(t<=0){setClip('circle(0px at 50% 0px)');return}
    const m=next.getBoundingClientRect(),d=dot.getBoundingClientRect(),cx=d.left+d.width/2,cy=d.top+d.height/2,r0=d.width/2;
    const far=Math.hypot(Math.max(cx,innerWidth-cx),Math.max(cy,innerHeight-cy))*1.02,r=r0+(far-r0)*inOut(t);
-   next.style.clipPath=`circle(${r.toFixed(1)}px at ${(cx-m.left).toFixed(1)}px ${(cy-m.top).toFixed(1)}px)`;
+   setClip(`circle(${r.toFixed(1)}px at ${(cx-m.left).toFixed(1)}px ${(cy-m.top).toFixed(1)}px)`);
   }
-  const progress=()=>{const rect=section.getBoundingClientRect();return clamp(-rect.top/Math.max(1,rect.height-innerHeight-(diving()?tailEl.offsetHeight:0)))};
+  const progress=()=>{const rect=section.getBoundingClientRect();return clamp(-rect.top/Math.max(1,rect.height-innerHeight-(diving()?tailHeight():0)))};
   function tick(){raf=0;if(inView)render(reduced.matches?1:progress())}
   
   
@@ -154,7 +161,7 @@
   tools.forEach((tool,index)=>{tool.addEventListener('click',()=>pick(tool));tool.addEventListener('keydown',event=>{const step=event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:0;if(!step)return;event.preventDefault();const next=tools[(index+step+tools.length)%tools.length];pick(next);next.focus()})});
   new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;if(inView)schedule()},{rootMargin:'0px'}).observe(section);
   addEventListener('scroll',()=>{schedule();scheduleDive()},{passive:true});
-  addEventListener('resize',()=>{layout=null;schedule();scheduleDive()},{passive:true});
+  addEventListener('resize',()=>{layout=null;tailH=null;schedule();scheduleDive()},{passive:true});
   reduced.addEventListener('change',()=>{setDive();schedule();scheduleDive()});
   screen.inert=true;setDive();measure();render(reduced.matches?1:0);renderDive();
  }
