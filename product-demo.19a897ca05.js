@@ -1,124 +1,122 @@
 (()=>{
- function project(from,to){
-  const rows=[];
-  for(let i=0;i<4;i++){
-   const [x,y]=from[i],[u,v]=to[i];
-   rows.push([x,y,1,0,0,0,-u*x,-u*y,u],[0,0,0,x,y,1,-v*x,-v*y,v]);
-  }
-  for(let col=0;col<8;col++){
-   let pivot=col;for(let row=col+1;row<8;row++)if(Math.abs(rows[row][col])>Math.abs(rows[pivot][col]))pivot=row;
-   [rows[col],rows[pivot]]=[rows[pivot],rows[col]];
-   const divisor=rows[col][col];for(let j=col;j<9;j++)rows[col][j]/=divisor;
-   for(let row=0;row<8;row++)if(row!==col){const factor=rows[row][col];for(let j=col;j<9;j++)rows[row][j]-=factor*rows[col][j]}
-  }
-  const [a,b,c,d,e,f,g,h]=rows.map(row=>row[8]);
-  return `matrix3d(${a},${d},0,${g},${b},${e},0,${h},0,0,1,0,${c},${f},0,1)`;
- }
  
  
  
  
  
- const OFFICE=[2200,1228];
- const SCREEN=[[14.558,46.355],[37.448,43.516],[40.22,72.221],[17.429,78.112]];
  
+ const SURFACE=[2752,1330],LINE=1479;
+ const REEF=[2400,906],DIVER=[640,1437],DIVER_ROPE=.495,BED=[900,1343],FISH=[700,338],FAN=[560,545],WEED_L=[440,1154],WEED_R=[480,837];
+ const DECK=[2752,1536],PEARL=[1355,894],HUSSAM=[1129,445,816,1090],FACES=[795,376,1131,389];
  
- const MID={rect:[100.7,460.3,1198.8,669.3],size:[2400,1340],sharp:[172.7,493.8,1227.6,1096.1]},AIM=[603.1,737.4],REST=[690,790];
- const ANSWERS={
-  openings:{ar:'ثلاث افتتاحيات، كل وحدة أقل من ثانيتين:\n١. «كم يوم من التحميص؟»\n٢. «اسمع الحبوب قبل ما تشربها.»\n٣. «فنجالك تحمّص الخميس.»',en:'Three opening lines, under two seconds each:\n1. “When was your coffee roasted?”\n2. “Listen to the beans before you taste them.”\n3. “This cup was roasted on Thursday.”'},
-  script:{ar:'٠٠–٠٣  صوت كيس يتفتح، بدون كلام.\n٠٣–١٠  عدّاد الأيام من التحميص لين الفنجال.\n١٠–١٥  «اشترك، وتوصلك طازجة كل أسبوع.»',en:'00–03  A bag tears open. No voiceover.\n03–10  A counter ticks from roast day to cup.\n10–15  “Subscribe. Fresh beans every week.”'},
-  test:{ar:'نبدأ بافتتاحيتين: بالصوت مقابل بالنص، وكل شي غيرها ثابت. نحكم بعد ثلاث أيام على تكلفة الطلب، مو على المشاهدات.',en:'Test two openings, one led by sound and one by text, and keep everything else the same. After three days, judge them on cost per order, not views.'}
- };
- function installWorkScene(root,lang){
-  const section=root.querySelector('.integrations'),sticky=section.querySelector('.integration-sticky');
-  const base=section.querySelector('.office-frame'),mid=section.querySelector('.office-mid'),dim=section.querySelector('.office-dim'),veil=section.querySelector('.office-veil'),copy=section.querySelector('.integration-copy');
-  const screen=section.querySelector('.screen'),chat=screen.querySelector('.chat'),reply=screen.querySelector('.reply'),artifact=screen.querySelector('.artifact'),suggestions=screen.querySelector('.suggestions');
-  const next=root.querySelector('.deliverables'),dot=screen.querySelector('.composer-field i'),tailEl=section.querySelector('.integration-tail');
-  const problem=section.querySelector('.problem'),pairs=[...problem.querySelectorAll('.pb-pair')],caption=problem.querySelector('.pb-caption'),notes=[...problem.querySelectorAll('.pb-notes li')];
-  const tools=[...screen.querySelectorAll('[data-tool]')].filter(el=>el.matches('button')),asks=[...screen.querySelectorAll('[data-ask]')];
+ const B={drop:[.02,.11],dive:[.1,.49],land:[.47,.53],tug:[.585,.62],rise:[.6,.71],wipe:[.655,.735],tilt:[.73,.86],pop:[.8,.85]};
+ function installDiveScene(root,lang){
+  const section=root.querySelector('.dive'),stage=section.querySelector('.dive-stage'),q=s=>section.querySelector(s);
+  const sea=q('.sea'),bands=q('.sea-bands'),ropes=q('.sea-ropes'),surface=q('.sea-surface'),fish=q('.sea-fish'),fan=q('.sea-fan'),reef=q('.sea-reef');
+  const down=q('.sea-diver.is-down'),bed=q('.sea-diver.is-bed'),weedL=q('.sea-weed.is-left'),weedR=q('.sea-weed.is-right'),tagList=q('.sea-tags'),tags=[...tagList.children];
+  const deckWindow=q('.deck-window'),deck=q('.deck'),base=q('.deck-base'),faces=q('.deck-faces'),hussam=q('.deck-hussam'),pearl=q('.deck-pearl'),water=q('.waterline');
+  const lines=[...section.querySelectorAll('.dive-line')],sub=q('.dive-sub');
+  const next=root.querySelector('.deliverables'),tailEl=q('.dive-tail');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const t=(ar,en)=>lang==='en'?en:ar,clamp=n=>Math.max(0,Math.min(1,n)),smooth=k=>k*k*(3-2*k),inOut=k=>k<.5?4*k*k*k:1-(2-2*k)**3/2;
-  const lerp=(a,b,k)=>a+(b-a)*k;
-  screen.querySelector('.tool-switch').setAttribute('aria-label',t('الأداة','Tool'));
-  const fullReply=reply.textContent;reply.textContent='';
-  const caret=document.createElement('span');caret.className='caret';caret.setAttribute('aria-hidden','true');
-  let inView=false,raf=0,layout=null,opened=false;
+  const span=(p,[a,b])=>clamp((p-a)/(b-a)),fade=(p,a,b)=>smooth(clamp((p-a)/(b-a)));
+  
+  const spring=k=>k>=1?1:1-Math.exp(-5.5*k)*Math.cos(9*k);
+  section.setAttribute('aria-label',t('البحث غوص','Research is a dive'));
+  let layout=null,inView=false,raf=0;
+  const size=(el,w,h)=>{el.style.width=w.toFixed(1)+'px';el.style.height=h.toFixed(1)+'px'};
+  const at=(el,x,y,extra='')=>{el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px)${extra}`};
   function measure(){
-   const VW=sticky.clientWidth,VH=sticky.clientHeight,tall=VH>VW*.9;
-   const s=Math.max(VW/OFFICE[0],VH/OFFICE[1]);
+   const VW=stage.clientWidth,VH=stage.clientHeight,tall=VH>VW*.9;
    
-   const ox=tall?Math.min(0,Math.max(VW-OFFICE[0]*s,VW/2-.275*OFFICE[0]*s)):(VW-OFFICE[0]*s)/2,oy=(VH-OFFICE[1]*s)/2;
+   const s0=tall?Math.max(VW/SURFACE[0],VW*1.15/2180):Math.max(VW/SURFACE[0],.62*VH/SURFACE[1]),sw=SURFACE[0]*s0,sh=SURFACE[1]*s0;
+   const sx=Math.min(0,Math.max(VW-sw,VW/2-LINE*s0)),ropeX=sx+LINE*s0;
+   
+   const top=tall?Math.max(0,128-330*s0):0;
+   
+   const D=sh+(tall?3.3:2.9)*VH;
+   const rs=Math.max(VW/REEF[0],(tall?.36:.46)*VH/REEF[1]),rw=REEF[0]*rs,rh=REEF[1]*rs;
+   const dh=(tall?.5:.56)*VH,dw=dh*DIVER[0]/DIVER[1],bh=(tall?.38:.44)*VH,bw=bh*BED[0]/BED[1];
+   const fw=(tall?.62:.34)*VW,fh=fw*FISH[1]/FISH[0],nh=(tall?.28:.34)*VH,nw=nh*FAN[0]/FAN[1];
+   const lh=(tall?.6:.72)*VH,lw=lh*WEED_L[0]/WEED_L[1],gh=(tall?.48:.58)*VH,gw=gh*WEED_R[0]/WEED_R[1];
+   size(surface,sw,sh);size(bands,VW,D+VH-sh);size(reef,rw,rh);size(down,dw,dh);size(bed,bw,bh);size(fish,fw,fh);size(fan,nw,nh);size(weedL,lw,lh);size(weedR,gw,gh);
+   size(ropes,sw,D-sh-rh*.4);
+   
+   const string=Math.max(18,VW*.025);
+   const tagAt=tags.map((tag,i)=>{tag.style.setProperty('--string',string+'px');return {x:ropeX+string,y:sh+VH*.5+(D-sh-VH*1.25)*[.06,.34,.62,.88][i]}});
+   const ds=Math.max(VW/DECK[0],VH/DECK[1]),deckW=DECK[0]*ds,deckH=DECK[1]*ds;
+   const dx=Math.min(0,Math.max(VW-deckW,VW/2-PEARL[0]*ds)),dy=Math.min(0,Math.max(VH-deckH,VH*.62-PEARL[1]*ds));
    
    
-   const [sx0,sy0,sx1,sy1]=MID.sharp,z1=tall?s:Math.max(s,Math.min(.63*VW/562,.8*VH/424),VW/(sx1-sx0),VH/(sy1-sy0));
-   const hw=VW/2/z1,hh=VH/2/z1,rest=[Math.min(Math.max(REST[0],sx0+hw),sx1-hw),Math.min(Math.max(REST[1],sy0+hh),sy1-hh)];
-   const W0=tall?VW-24:Math.min(1120,VW-96),H0=tall?VH-104:Math.min(700,VH-150);
-   const left=(VW-W0)/2,top=tall?88:Math.max(96,(VH-H0)/2+22);
-   screen.style.width=W0+'px';screen.style.height=H0+'px';
-   const at=(point,center,zoom)=>[VW/2+(point[0]-center[0])*zoom,VH/2+(point[1]-center[1])*zoom];
-   const c0=[(VW/2-ox)/s,(VH/2-oy)/s];
-   const raster=Math.min(3,Math.max(1,devicePixelRatio||1));document.documentElement.style.setProperty('--raster',String(raster));
-   layout={VW,VH,tall,s,z1,c0,p0:at(AIM,c0,s),p1:at(AIM,rest,z1),W0,H0,raster,open:[[left,top],[left+W0,top],[left+W0,top+H0],[left,top+H0]]};
+   const raster=Math.min(3,Math.max(1,devicePixelRatio||1)),k=ds*raster;
+   size(base,DECK[0]/raster,DECK[1]/raster);size(faces,FACES[2]/raster,FACES[3]/raster);size(hussam,HUSSAM[2]/raster,HUSSAM[3]/raster);
+   
+   const bedY=D-rh*.5-bh*.9;
+   layout={VW,VH,tall,top,sh,sx,ropeX,D,rw,rh,dw,dh,bw,bh,fw,fh,nw,nh,lw,lh,gw,gh,tagAt,ds,k,deckW,deckH,dx,dy,bedY,bottom:D-VH};
   }
   
+  const camera=(p,L)=>p<B.rise[0]?L.bottom*inOut(span(p,B.dive)):L.bottom*(1-inOut(span(p,B.rise)));
   
-  function beats(tall){return tall?{push:[0,0],open:[.42,.58],type:[.6,.78],chips:.84}:{push:[.38,.64],open:[.66,.76],type:[.78,.9],chips:.93}}
   
+  const depth=(y,cam,k,ref)=>y-cam-(k-1)*(cam-ref);
   
-  const fade=(p,a,b)=>smooth(clamp((p-a)/(b-a)));
-  function renderProblem(p,tall){
-   const lines=[...pairs.flatMap(pair=>[...pair.children]),caption];
-   if(reduced.matches){[...lines,...notes].forEach(el=>{el.style.opacity='';el.style.transform=''});return 0}
-   
-   
-   const slap=(el,v,tilt)=>{el.style.opacity=Math.min(1,v*3).toFixed(3);el.style.transform=v<1?`rotate(calc(var(--r) + ${(tilt*(1-v)).toFixed(2)}deg)) scale(${(1.24-.24*v).toFixed(3)})`:''};
-   const [first,last]=pairs,out1=1-fade(p,.10,.12),out2=1-fade(p,.32,.35);
-   slap(first.children[0],fade(p,.008,.03)*out1,-7);slap(first.children[1],fade(p,.04,.065)*out1,6);
-   slap(caption,fade(p,.12,.14)*(1-fade(p,.24,.26)),-5);
-   
-   const notesOut=tall?fade(p,.232,.255):fade(p,.30,.34);
-   notes.forEach((note,i)=>{const at=.14+i*.025;slap(note,fade(p,at,at+.016)*(1-notesOut),i%2?9:-9)});
-   slap(last.children[0],fade(p,.25,.27)*out2,-7);slap(last.children[1],fade(p,.27,.29)*out2,6);
-   
-   return .78*fade(p,0,.03);
-  }
+  function slap(el,v,tilt){el.style.opacity=Math.max(.001,Math.min(1,v*3)).toFixed(3);el.style.transform=v<1?`rotate(calc(var(--r) + ${(tilt*(1-v)).toFixed(2)}deg)) scale(${(1.24-.24*v).toFixed(3)})`:''}
   function render(p){
    if(!layout)measure();
-   const {tall,VW,VH,s,z1,p0,p1}=layout,b=beats(tall);
+   const L=layout,{VW,VH}=L;
+   if(reduced.matches){p=.9;for(const el of [...lines,sub,faces,hussam]){el.style.opacity='';el.style.transform=''}}
+   const cam=camera(p,L)-L.top;
    
-   const u=tall||reduced.matches?0:inOut(clamp((p-b.push[0])/(b.push[1]-b.push[0])));
-   const zoom=s*Math.pow(z1/s,u),aim=[p0[0]+(p1[0]-p0[0])*u,p0[1]+(p1[1]-p0[1])*u];
-   const center=[AIM[0]-(aim[0]-VW/2)/zoom,AIM[1]-(aim[1]-VH/2)/zoom];
-   const toScreen=([x,y])=>[VW/2+(x-center[0])*zoom,VH/2+(y-center[1])*zoom];
    
-   const origin=toScreen([0,0]),corner=toScreen(MID.rect),density=layout.raster;
-   base.style.transform=`translate(${origin[0].toFixed(2)}px,${origin[1].toFixed(2)}px) scale(${(zoom*density).toFixed(5)})`;
-   mid.style.transform=`translate(${corner[0].toFixed(2)}px,${corner[1].toFixed(2)}px) scale(${(MID.rect[2]*zoom/MID.size[0]*density).toFixed(5)},${(MID.rect[3]*zoom/MID.size[1]*density).toFixed(5)})`;
-   const quad=SCREEN.map(([x,y])=>toScreen([x/100*OFFICE[0],y/100*OFFICE[1]]));
+   const underwater=p<B.wipe[1];sea.style.opacity=underwater?'':'0';tagList.style.opacity=underwater?'':'0';
+   if(underwater){
+    
+    
+    at(surface,L.sx,-cam);at(bands,0,L.sh-cam);at(ropes,L.sx,L.sh-1-cam);at(reef,(VW-L.rw)/2,Math.min(L.D-L.rh-cam,VH-2));
+    tags.forEach((tag,i)=>at(tag,L.tagAt[i].x,L.tagAt[i].y-cam));
+    
+    const fishY=L.sh+VH*.55;at(fish,(L.tall?VW*.5:VW*.62)-span(p,[.06,.42])*VW*.55,depth(fishY,cam,.82,fishY-VH*.4));
+    at(fan,VW*(L.tall?.58:.66),depth(L.D-L.rh-L.nh*.45,cam,1.12,L.bottom));
+    at(weedL,-L.lw*.28,depth(L.D-L.lh*.92,cam,1.35,L.bottom));at(weedR,VW-L.gw*.72,depth(L.D-L.gh*.92,cam,1.35,L.bottom));
+    
+    
+    const drop=smooth(span(p,B.drop)),sway=Math.sin(p*46)*VH*.006;
+    let downY=-L.dh+(VH*.22+L.dh)*drop+sway;
+    const land=span(p,B.land),bedScreen=L.bedY-cam;
+    downY+=(bedScreen-L.bh*.15-VH*.22)*smooth(land);
+    at(down,L.ropeX-DIVER_ROPE*L.dw,downY);
+    const swap=fade(p,B.land[1]-.012,B.land[1]);down.style.opacity=(1-swap).toFixed(3);
+    bed.style.visibility=swap>0?'visible':'hidden';bed.style.opacity=swap.toFixed(3);
+    const tug=span(p,B.tug);at(bed,L.ropeX-L.bw*.5,bedScreen-(bedScreen+L.bh)*tug*tug);
+   }
    
-   const k=reduced.matches?1:inOut(clamp((p-b.open[0])/(b.open[1]-b.open[0])));
-   const target=quad.map((pt,i)=>[lerp(pt[0],layout.open[i][0],k),lerp(pt[1],layout.open[i][1],k)]);
-   screen.style.transform=k>=1?`translate(${layout.open[0][0]}px,${layout.open[0][1]}px)`:project([[0,0],[layout.W0,0],[layout.W0,layout.H0],[0,layout.H0]],target);
-   const problemDim=renderProblem(p,tall);
+   const wipe=inOut(span(p,B.wipe)),onDeck=wipe>0;
+   deckWindow.style.opacity=onDeck||reduced.matches?'1':'0';
+   const hidden=reduced.matches?0:(1-wipe)*VH;at(deckWindow,0,-hidden);at(deck,0,hidden);
+   water.style.opacity=wipe>0&&wipe<1&&!reduced.matches?'1':'0';at(water,0,wipe*VH-13);
+   if(onDeck||reduced.matches){
+    
+    
+    const tilt=1-inOut(span(p,B.tilt)),lift=VH*.09*tilt,pop=span(p,B.pop),sp=spring(pop);
+    const scale=` scale(${L.k.toFixed(5)})`;
+    at(base,L.dx,L.dy+lift,scale);
+    at(faces,L.dx+FACES[0]*L.ds,L.dy+FACES[1]*L.ds+lift,scale);
+    const hx=L.dx+HUSSAM[0]*L.ds,hy=L.dy+HUSSAM[1]*L.ds;
+    at(hussam,hx,hy+lift*1.8+(1-sp)*VH*.06,` scale(${(L.k*(.92+.08*sp)).toFixed(5)})`);
+    at(pearl,L.dx+PEARL[0]*L.ds,L.dy+PEARL[1]*L.ds+lift*1.8);
+    
+    if(!reduced.matches){hussam.style.opacity=Math.max(.001,Math.min(1,pop*3)).toFixed(3);faces.style.opacity=Math.max(.001,fade(p,B.pop[0]+.01,B.pop[1])).toFixed(3)}
+   }
+   if(reduced.matches)return;
    
-   screen.style.setProperty('--content',tall&&!reduced.matches?smooth(clamp((k-.35)/.4)).toFixed(3):'1');
-   
-   const turnIn=reduced.matches?0:fade(p,.34,.37),turnOut=reduced.matches?1:tall?fade(p,b.open[0],b.open[0]+.06):fade(p,b.push[0]+.05,b.push[0]+.12),turn=turnIn*(1-turnOut);
-   copy.style.opacity=turn.toFixed(3);copy.style.transform=`translateY(${((1-turnIn)*16-24*turnOut).toFixed(1)}px)`;
-   dim.style.opacity=(.55*k).toFixed(3);
-   
-   veil.style.opacity=(problemDim*(1-turnOut)).toFixed(3);
-   
-   screen.style.opacity=(reduced.matches?1:fade(p,.35,.4)).toFixed(3);
-   const isOpen=k>=.98;if(isOpen!==opened){opened=isOpen;screen.classList.toggle('is-open',isOpen);screen.inert=!isOpen}
-   
-   const typed=reduced.matches?1:clamp((p-b.type[0])/(b.type[1]-b.type[0]));
-   const n=Math.round(fullReply.length*typed);
-   if(reply.dataset.n!==String(n)){reply.dataset.n=n;reply.textContent=fullReply.slice(0,n);if(n<fullReply.length&&n>0)reply.append(caret)}
-   artifact.style.setProperty('--shown',(reduced.matches?1:smooth(clamp((p-b.type[1]+.02)/.06))).toFixed(3));
-   suggestions.style.setProperty('--chips',(reduced.matches?1:smooth(clamp((p-b.chips)/.05))).toFixed(3));
+   const [shoot,pearlLine,breath,empty,week,knows]=lines;
+   const out1=1-fade(p,.095,.11);
+   slap(shoot,fade(p,.004,.025)*out1,-7);slap(pearlLine,fade(p,.03,.052)*out1,6);
+   slap(breath,fade(p,.49,.51)*(1-fade(p,.575,.59)),-6);
+   const out2=1-fade(p,.80,.812);
+   slap(empty,fade(p,.742,.758)*out2,-7);slap(week,fade(p,.762,.778)*out2,6);
+   slap(knows,fade(p,.838,.852),-6);slap(sub,fade(p,.858,.872),5);
   }
-  
   
   
   const diving=()=>section.classList.contains('has-dive');
@@ -127,43 +125,32 @@
   let clipNow=null,tailH=null;
   const setClip=value=>{if(value!==clipNow){clipNow=value;next.style.clipPath=value}};
   const tailHeight=()=>tailH??(tailH=tailEl.offsetHeight);
-  function setDive(){const on=!reduced.matches&&!!next&&!!dot;section.classList.toggle('has-dive',on);tailH=null;if(!on&&next){setClip('');next.classList.add('is-open')}layout=null}
+  function setDive(){const on=!reduced.matches&&!!next;section.classList.toggle('has-dive',on);tailH=null;if(!on&&next){setClip('');next.classList.add('is-open')}layout=null}
   function renderDive(){
    if(!diving())return;
    const rect=section.getBoundingClientRect(),tail=tailHeight(),t=clamp((-rect.top-(rect.height-innerHeight-tail))/Math.max(1,tail));
    if(t>=.5&&!next.classList.contains('is-open')){next.classList.add('is-open');dispatchEvent(new Event('hussam:desk'))}
    if(t>=1){setClip('');return}
    if(t<=0){setClip('circle(0px at 50% 0px)');return}
-   const m=next.getBoundingClientRect(),d=dot.getBoundingClientRect(),cx=d.left+d.width/2,cy=d.top+d.height/2,r0=d.width/2;
+   const m=next.getBoundingClientRect(),d=pearl.getBoundingClientRect(),cx=d.left+d.width/2,cy=d.top+d.height/2,r0=Math.max(4,(layout?.ds||.5)*34);
    const far=Math.hypot(Math.max(cx,innerWidth-cx),Math.max(cy,innerHeight-cy))*1.02,r=r0+(far-r0)*inOut(t);
    setClip(`circle(${r.toFixed(1)}px at ${(cx-m.left).toFixed(1)}px ${(cy-m.top).toFixed(1)}px)`);
   }
   const progress=()=>{const rect=section.getBoundingClientRect();return clamp(-rect.top/Math.max(1,rect.height-innerHeight-(diving()?tailHeight():0)))};
-  function tick(){raf=0;if(inView)render(reduced.matches?1:progress())}
+  function tick(){raf=0;if(inView)render(progress())}
   
   
   let diveFrame=0;const scheduleDive=()=>{if(!diveFrame)diveFrame=requestAnimationFrame(()=>{diveFrame=0;renderDive()})};
   const schedule=()=>{if(!raf&&inView)raf=requestAnimationFrame(tick)};
-  
-  asks.forEach(button=>button.addEventListener('click',()=>{
-   button.disabled=true;
-   const you=document.createElement('div');you.className='msg from-you';const q=document.createElement('p');q.textContent=button.textContent;you.append(q);
-   const him=document.createElement('div');him.className='msg from-hussam';him.innerHTML=screen.querySelector('.from-hussam .who').outerHTML;
-   const text=document.createElement('p');him.append(text);chat.append(you,him);
-   const answer=ANSWERS[button.dataset.ask][lang];
-   if(reduced.matches){text.textContent=answer;chat.scrollTop=chat.scrollHeight;return}
-   let i=0;const started=performance.now()+350;
-   const type=now=>{i=Math.max(0,Math.min(answer.length,Math.round((now-started)/22)));text.textContent=answer.slice(0,i);if(i<answer.length)text.append(caret);chat.scrollTop=chat.scrollHeight;if(i<answer.length)requestAnimationFrame(type)};
-   requestAnimationFrame(type);
-  }));
-  
-  const pick=tool=>{screen.dataset.tool=tool.dataset.tool;tools.forEach(button=>{const on=button===tool;button.setAttribute('aria-selected',String(on));button.tabIndex=on?0:-1})};
-  tools.forEach((tool,index)=>{tool.addEventListener('click',()=>pick(tool));tool.addEventListener('keydown',event=>{const step=event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:0;if(!step)return;event.preventDefault();const next=tools[(index+step+tools.length)%tools.length];pick(next);next.focus()})});
   new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;if(inView)schedule()},{rootMargin:'0px'}).observe(section);
   addEventListener('scroll',()=>{schedule();scheduleDive()},{passive:true});
   addEventListener('resize',()=>{layout=null;tailH=null;schedule();scheduleDive()},{passive:true});
   reduced.addEventListener('change',()=>{setDive();schedule();scheduleDive()});
-  screen.inert=true;setDive();measure();render(reduced.matches?1:0);renderDive();
+  
+  new IntersectionObserver((entries,observer)=>{if(!entries.some(entry=>entry.isIntersecting))return;observer.disconnect();for(const image of section.querySelectorAll('img')){image.loading='eager';image.decode?.().catch(()=>{})}},{rootMargin:'150% 0px'}).observe(section);
+  
+  document.fonts?.ready.then(()=>{layout=null;schedule()});
+  setDive();measure();render(0);renderDive();
  }
 
  
@@ -283,7 +270,7 @@
   const begin=()=>{if(!seen){current=null;deliver('roastery')}};
   
   
-  const desk=root.querySelector('.deliverables'),diveHolds=()=>!!root.querySelector('.integrations.has-dive')&&!desk.classList.contains('is-open');
+  const desk=root.querySelector('.deliverables'),diveHolds=()=>!!root.querySelector('.dive.has-dive')&&!desk.classList.contains('is-open');
   new IntersectionObserver((entries,observer)=>{if(!entries.some(entry=>entry.isIntersecting))return;observer.disconnect();if(diveHolds())addEventListener('hussam:desk',begin,{once:true});else begin()},{threshold:.4}).observe(table);
  }
 
@@ -295,7 +282,7 @@
   const host=document.createElement('div');host.className='hussam-product-demo';const root=host.attachShadow({mode:'open'});root.append(template.content.cloneNode(true));
   const lang=document.documentElement.lang==='en'?'en':'ar';root.querySelector('.demo-wrap').classList.toggle('en',lang==='en');root.querySelectorAll('[data-ar]').forEach(e=>e.textContent=e.dataset[lang]);
   installDesk(root,lang);
-  section.append(host);installed=host;installWorkScene(root,lang);document.dispatchEvent(new Event('hussam:demo-mounted'));
+  section.append(host);installed=host;installDiveScene(root,lang);document.dispatchEvent(new Event('hussam:demo-mounted'));
  }
  let scheduled=false;const observer=new MutationObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;mount()})});function start(){mount();observer.observe(document.getElementById('main')||document.body,{childList:true,subtree:true})}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();

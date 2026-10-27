@@ -106,6 +106,7 @@
     
     Promise.all([scene.parts.near,scene.parts.close].map(image=>{image.src=image.dataset.src;return image.decode?image.decode().catch(()=>{}):null})).then(()=>{scene.zoomReady=true;for(const image of [scene.parts.near,scene.parts.close])if(!+image.style.opacity)image.style.opacity='.001'});
     scene.parts.irisDesk.setAttribute('href',scene.parts.irisDesk.dataset.href);
+    const tile=scene.media.querySelector('.hero-sea-tile');tile?.setAttribute('href',tile.dataset.href);
     (window.requestIdleCallback||(fn=>setTimeout(fn,150)))(()=>prepareWhirl(scene),{timeout:1500});
   }
   function prepareWhirl(scene){
@@ -142,7 +143,7 @@
   let officeAt=null,officeFor='';
   function deskPlace(){
     const size=innerWidth+'x'+innerHeight;if(officeAt&&officeFor===size)return officeAt;
-    const root=document.querySelector('.hussam-product-demo')?.shadowRoot,frame=root?.querySelector('.office-frame'),sticky=root?.querySelector('.integration-sticky');
+    const root=document.querySelector('.hussam-product-demo')?.shadowRoot,frame=root?.querySelector('.sea-surface'),sticky=root?.querySelector('.dive-stage');
     if(!frame||!sticky)return null;
     const f=frame.getBoundingClientRect(),s=sticky.getBoundingClientRect();
     officeAt={x:f.left,y:f.top-s.top,w:f.width,h:f.height};officeFor=size;return officeAt;
@@ -255,7 +256,12 @@ void main(){
     const {iris,irisHole,irisClip,irisDesk,swirl}=scene.parts,t=motion*clamp((progress-.7)/.28);
     if(t>0&&scene.zoomLoaded&&scene.whirl===undefined)prepareWhirl(scene);
     const whirl=scene.whirl,office=deskPlace();
-    if(office)['x','y','width','height'].forEach((key,i)=>irisDesk.setAttribute(key,[office.x,office.y,office.w,office.h][i].toFixed(1)));
+    if(office){
+      ['x','y','width','height'].forEach((key,i)=>irisDesk.setAttribute(key,[office.x,office.y,office.w,office.h][i].toFixed(1)));
+      
+      const sea=scene.media.querySelector('.hero-desk-sea'),pattern=scene.media.querySelector('#hero-sea'),tile=pattern?.firstElementChild,below=office.y+office.h-1,th=office.w*223/2752;
+      if(sea&&pattern&&tile){for(const [el,attrs] of [[sea,{x:office.x,y:below,width:office.w,height:4000}],[pattern,{x:office.x,y:below,width:office.w,height:th}],[tile,{width:office.w,height:th}]])for(const k in attrs)el.setAttribute(k,attrs[k].toFixed(1))}
+    }
     const cx=close.X+heroIris.x*close.sx,cy=close.Y+heroIris.y*close.sy;
     if(!whirl){
       
