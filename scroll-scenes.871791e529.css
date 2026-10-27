@@ -145,16 +145,21 @@ html.hussam-en .majlis-strip{transform:scaleX(-1)}
 #why-hussam .framer-9yetgy-container,#why-hussam .framer-17pwh3m{visibility:hidden!important}
 .hussam-palace{--fh:min(calc(100cqh - 136px),940px);--fw:calc(var(--fh) * .5581);position:absolute;inset:0;z-index:2;overflow:hidden;background:#fcf5e2;container-type:size}
 .palace-figure{position:absolute;left:50%;top:calc(50% + 36px);height:var(--fh);width:var(--fw);margin:0;transform:translate(-50%,-50%);perspective:1600px}
-.palace-art{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+.palace-art{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform;pointer-events:none}
 
-.palace-art::before{content:"";position:absolute;inset:0;background:url('/assets/palace/ink.webp') 0 0/100% 100% no-repeat;opacity:.2;transition:opacity .8s ease}
+.palace-art::before{content:"";position:absolute;inset:0;background:url('/assets/palace/ink.webp') 0 0/100% 100% no-repeat;opacity:.2;transition:opacity .8s ease;pointer-events:none}
 .hussam-palace.is-complete .palace-art::before{opacity:0}
 .palace-band{position:absolute;left:0;width:100%;top:calc(var(--y0) * 100%);height:calc(var(--h) * 100%);transform:translateZ(var(--z));visibility:hidden;pointer-events:none}
 .palace-band[data-floor="0"],.palace-band.is-placed{visibility:visible}
 .palace-band.is-placed{pointer-events:auto;cursor:pointer}
-.palace-slice{position:absolute;inset:0;background:url('/assets/palace/color.webp') no-repeat;background-size:100% calc(100% / var(--h));background-position:0 calc(var(--y0) / (1 - var(--h)) * 100%);transform-origin:50% 100%;transition:translate .4s cubic-bezier(.2,.8,.2,1),filter .4s ease}
-.palace-band[data-floor="0"] .palace-slice{background-position:0 100%}
-.palace-band.is-hot .palace-slice{translate:0 -7px;filter:drop-shadow(0 12px 14px rgba(25,25,22,.24))}
+
+.palace-slice{position:absolute;inset:0;background:0 0/100% 100% no-repeat;transform-origin:50% 100%;transition:translate .5s cubic-bezier(.2,.8,.2,1),filter .5s ease}
+.palace-band[data-floor="0"] .palace-slice{background-image:url('/assets/palace/floor-0.webp')}.palace-band[data-floor="1"] .palace-slice{background-image:url('/assets/palace/floor-1.webp')}.palace-band[data-floor="2"] .palace-slice{background-image:url('/assets/palace/floor-2.webp')}.palace-band[data-floor="3"] .palace-slice{background-image:url('/assets/palace/floor-3.webp')}.palace-band[data-floor="4"] .palace-slice{background-image:url('/assets/palace/floor-4.webp')}
+
+#why-hussam [data-framer-name="Text"],#why-hussam [data-framer-name="Text"] *{pointer-events:none}
+
+.palace-band.is-lifted .palace-slice{translate:0 calc(var(--fh) * -.045);filter:drop-shadow(0 10px 6px rgba(25,25,22,.22))}
+.palace-band.is-raised .palace-slice{translate:0 calc(var(--fh) * -.016);filter:drop-shadow(0 8px 6px rgba(25,25,22,.2))}
 .palace-fx{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 .palace-voice path{fill:none;stroke:#171714;stroke-width:8;stroke-linecap:round;opacity:0}
 .palace-band.is-hot .palace-voice path{animation:palace-voice 1.15s ease-out infinite}
@@ -190,6 +195,9 @@ html.hussam-en .palace-room{font-size:11px;line-height:1.6;text-transform:upperc
  .palace-captions li{position:static;grid-area:1/1;transform:none}
  .palace-captions button,.palace-captions li.is-shown button{width:auto;max-width:none;padding:12px 18px 14px;border:2px solid #191916;border-radius:10px;background:#fcf5e2;box-shadow:5px 5px 0 #191916;font-size:17px;text-align:center;opacity:0;transform:translateY(10px);transition:opacity .2s ease-in,transform .2s ease-in}
  .palace-captions li.is-current button{opacity:1;transform:none;transition:opacity .36s cubic-bezier(.16,1,.3,1) .08s,transform .5s cubic-bezier(.16,1,.3,1) .08s}
+ 
+ .palace-captions:has(li.is-hot) li.is-current:not(.is-hot) button{opacity:0;transform:translateY(10px);transition:opacity .2s ease-in,transform .2s ease-in}
+ .palace-captions li.is-hot button{opacity:1;transform:none;transition:opacity .36s cubic-bezier(.16,1,.3,1) .08s,transform .5s cubic-bezier(.16,1,.3,1) .08s}
  .palace-captions button::before{display:none}
 }
 @media(prefers-reduced-motion:reduce){.palace-captions button,.palace-captions button::before,.palace-slice{transition:none!important}.hussam-palace *{animation:none!important}}

@@ -503,7 +503,8 @@ void main(){
     scene.queue=Promise.resolve();
     
     const hot=floor=>{
-      scene.parts.bands.forEach((band,i)=>band.classList.toggle('is-hot',i===floor&&i<=scene.placed&&i>0));
+      const on=floor>0&&floor<=scene.placed;
+      scene.parts.bands.forEach((band,i)=>{band.classList.toggle('is-hot',on&&i===floor);band.classList.toggle('is-lifted',on&&i>floor&&i<=scene.placed);band.classList.toggle('is-raised',on&&i===floor&&floor===scene.placed)});
       scene.parts.captions.forEach((caption,i)=>caption.classList.toggle('is-hot',i+1===floor));
     };
     
@@ -534,9 +535,9 @@ void main(){
   function liftFloor(scene,floor,instant){
     const {slices,bands,captions}=scene.parts;
     captions[floor-1].classList.remove('is-shown','is-hot');
-    if(instant){bands[floor].classList.remove('is-placed','is-hot');return Promise.resolve()}
+    if(instant){bands[floor].classList.remove('is-placed','is-hot','is-lifted','is-raised');return Promise.resolve()}
     const lift=slices[floor].animate([{transform:'none'},{transform:`translateY(${-scene.parts.figure.getBoundingClientRect().bottom}px)`}],{duration:420,easing:'cubic-bezier(.6,0,.85,.3)'});
-    return lift.finished.then(()=>bands[floor].classList.remove('is-placed','is-hot'),()=>{});
+    return lift.finished.then(()=>bands[floor].classList.remove('is-placed','is-hot','is-lifted','is-raised'),()=>{});
   }
   function renderPalace(scene,progress){
     const stage=palaceStages.filter(at=>progress>=at).length;
