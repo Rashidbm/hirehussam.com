@@ -3,8 +3,7 @@
   const scenes=[
     {name:'intro',section:'#hero',sticky:'.framer-80ra3e',end:'#problem'},
     {name:'brain',section:'#why-hussam',sticky:'.framer-15vw8k5'},
-    {name:'arcade',section:'#maze',sticky:'.framer-pokk01'},
-    {name:'dallah',section:'#maze',sticky:'.framer-pokk01'}
+    {name:'arcade',section:'#maze',sticky:'.framer-pokk01',end:'#why-hussam'}
   ];
   const clamp=n=>Math.max(0,Math.min(1,n));
   
@@ -327,6 +326,9 @@ void main(){
     const money=n=>arabic?`${number.format(n)} ريال`:`SAR ${number.format(n)}`;
     const game={spent:0,orders:0,up:new Map(),timers:[],stage:'',active:false,solved:false,played:false,geo:null,last:-1,sprite:''};
     scene.media=root;scene.game=game;
+    
+    const fillReceipt=()=>{q('.receipt-old').textContent=`${money(Math.max(game.spent,6500))} · ${orders(game.orders)}`;q('.receipt-new').textContent=`${money(500)} · ${orders(320)}`};
+    fillReceipt();
     const later=(fn,ms)=>game.timers.push(setTimeout(fn,ms));
     const clearTimers=()=>{game.timers.forEach(clearTimeout);game.timers=[]};
     
@@ -423,9 +425,7 @@ void main(){
       const item=items[i];item.getAnimations().forEach(animation=>animation.cancel());
       item.animate([{transform:'translateY(0) scale(1)'},{transform:'translateY(-10%) scale(1.12)',offset:.4},{transform:'translateY(0) scale(1)'}],{duration:quick||540,easing:'cubic-bezier(.2,.8,.3,1)',fill:'forwards'});
       float(x,y-30,arabic?`+${number.format(320)} طلب`:'+320 orders',true);
-      const spent=Math.max(game.spent,6500);
-      q('.receipt-old').textContent=`${money(spent)} · ${orders(game.orders)}`;
-      q('.receipt-new').textContent=`${money(500)} · ${orders(320)}`;
+      fillReceipt();
       root.classList.add('is-solved');
     }
     
@@ -446,13 +446,14 @@ void main(){
     }
     function start(){
       clearTimers();
-      if(game.stage==='old'){popLoop();if(!game.played)later(ghost,2200)}
-      if(game.stage==='new'&&!game.solved){later(()=>{rise(4,'insight');root.classList.add('is-hinting')},420);later(ghost,4600)}
+      if(game.stage==='old'){popLoop();if(!game.played)later(ghost,1100)}
+      if(game.stage==='new'&&!game.solved){later(()=>{rise(4,'insight');root.classList.add('is-hinting')},420);later(ghost,3000)}
       if(game.stage==='new'&&game.solved&&!game.up.has(4))rise(4,'insight');
     }
+    game.finish=()=>{if(game.active&&game.stage==='new'&&!game.solved&&!game.finishing&&game.up.get(4)==='insight'){game.finishing=true;ghost()}};
     game.enter=stage=>{
       if(game.stage===stage)return;
-      game.stage=stage;root.dataset.stage=stage;clearTimers();
+      game.stage=stage;root.dataset.stage=stage;clearTimers();game.finishing=false;
       [...game.up.keys()].forEach(sink);root.classList.remove('is-hinting');
       board.classList.toggle('is-playable',stage!=='verdict');if(stage==='verdict')board.classList.remove('has-mallet');
       if(stage==='old'){root.classList.remove('is-solved');game.solved=false}
@@ -474,28 +475,9 @@ void main(){
     measure();
   }
   function renderArcade(scene,progress){
-    scene.game.enter(progress<.45?'old':progress<.62?'verdict':'new');
-    scene.media.dataset.progress=progress.toFixed(3);
-  }
-  
-  
-  function renderDallah(scene,progress){
-    const {parts}=scene,height=scene.media.clientHeight,still=reduced.matches;
-    const rise=still?(progress>.02?1:0):smooth(clamp(progress/.26)),bounce=still?0:Math.sin(clamp((progress-.18)/.12)*Math.PI);
-    const tilt=still?1:smooth(clamp((progress-.3)/.12)),pour=still?1:clamp((progress-.38)/.1),fill=still?1:smooth(clamp((progress-.42)/.16));
-    const steam=still?0:clamp((progress-.54)/.06)*(1-clamp((progress-.66)/.06));
-    const gold=still?0:smooth(clamp((progress-.52)/.33)),cream=still?(progress>.7?1:0):smooth(clamp((progress-.64)/.36));
-    const splash=still?0:clamp((progress-.44)/.05)*(1-clamp((progress-.55)/.06));
-    parts.veil.style.opacity=String(.92*rise);
-    parts.rise.style.transform=`translateY(${(1-rise)*640-14*bounce}px)`;
-    parts.tilt.style.transform=`translateY(${-40*tilt}px) rotate(${-42*tilt}deg)`;
-    parts.streams.forEach(stream=>stream.style.strokeDashoffset=String(1-pour));
-    parts.splash.style.opacity=String(splash);
-    parts.splash.style.transform=`translateY(${-10*splash}px)`;
-    parts.coffee.style.transform=`translateY(${56-44*fill}px)`;
-    parts.steam.style.opacity=String(steam);
-    parts.gold.style.transform=`translateY(${(1-gold)*(height+140)-100*gold}px)`;
-    parts.cream.style.transform=`translateY(${(1-cream)*(height+140)-100*cream}px)`;
+    scene.game.enter(progress<.42?'old':progress<.66?'verdict':'new');
+    
+    if(progress>=.88)scene.game.finish();
     scene.media.dataset.progress=progress.toFixed(3);
   }
   
@@ -732,28 +714,19 @@ void main(){
     frame=0;
     
     
-    const live=[],top=id=>document.getElementById(id)?.getBoundingClientRect().top;
+    const live=[];
     for(const scene of scenes){
       if(!scene.media?.isConnected)continue;
       const box=scene.element.getBoundingClientRect();
       if(scene.name!=='intro'&&(box.bottom<0||box.top>innerHeight*2))continue;
-      live.push({scene,box,end:scene.end?document.querySelector(scene.end).getBoundingClientRect().top:0,third:scene.name==='dallah'||scene.name==='arcade'?top('maze-3'):undefined,fourth:scene.name==='dallah'?top('maze-4'):undefined});
+      live.push({scene,box,end:scene.end?document.querySelector(scene.end).getBoundingClientRect().top:0});
     }
-    for(const {scene,box,end,third,fourth} of live){
+    for(const {scene,box,end} of live){
       const endDistance=scene.end?end-box.top:0;
       const travel=scene.end?Math.max(1,endDistance-innerHeight):Math.max(1,box.height-innerHeight);
       const progress=clamp(-box.top/travel);
-      if(scene.name==='dallah'){
-        
-        
-        if(third!==undefined&&fourth!==undefined)renderDallah(scene,clamp((.58*innerHeight-third)/(fourth-third+.78*innerHeight)));
-        continue;
-      }
-      if(scene.name==='arcade'){
-        
-        if(third===undefined)continue;
-        renderArcade(scene,clamp(-box.top/Math.max(1,third-box.top-innerHeight)));continue;
-      }
+      
+      if(scene.name==='arcade'){renderArcade(scene,progress);continue}
       if(scene.name==='brain'){
         
         
@@ -789,11 +762,6 @@ void main(){
       }else if(scene.name==='arcade'){
         const template=document.getElementById('hussam-arcade-template');if(!template)continue;
         sticky.append(template.content.cloneNode(true));installArcade(scene,sticky.lastElementChild);
-      }else if(scene.name==='dallah'){
-        const template=document.getElementById('hussam-dallah-template');if(!template)continue;
-        sticky.append(template.content.cloneNode(true));
-        const art=sticky.lastElementChild,q=selector=>art.querySelector(selector);
-        scene.media=art;scene.parts={veil:q('.dallah-veil'),rise:q('.dallah-rise'),tilt:q('.dallah-tilt'),streams:[...art.querySelectorAll('.dallah-stream')],splash:q('.dallah-splash'),coffee:q('.dallah-coffee'),steam:q('.dallah-steam'),gold:q('.dallah-flood-gold'),cream:q('.dallah-flood-cream')};
       }else installHero(scene,sticky);
     }
     const cta=document.getElementById('cta'),ctaTemplate=document.getElementById('hussam-cta-template');

@@ -73,9 +73,11 @@ html.hussam-en .hero-line{direction:ltr}
 .arcade-eyebrow{margin:0 0 6px;font:700 15px/1.4 ThmanyahText,serif;color:#f4ca50}
 .arcade-title{margin:0;font:700 clamp(30px,4vw,56px)/1.25 ThmanyahDisplay,serif;white-space:pre-line;color:#fcf5e2}
 .arcade-sub{margin:10px 0 0;font:400 18px/1.6 ThmanyahText,serif;color:#d6e4cc}
-.hussam-arcade [data-show]{display:none}
-.hussam-arcade[data-stage="old"] [data-show~="old"],.hussam-arcade[data-stage="verdict"] [data-show~="verdict"],.hussam-arcade[data-stage="new"] [data-show~="new"]{display:inline;animation:arcade-swap .5s cubic-bezier(.16,1,.3,1) both}
-@keyframes arcade-swap{from{opacity:0}to{opacity:1}}
+
+.arcade-eyebrow,.arcade-title,.arcade-sub{display:grid;align-items:center}
+.hussam-arcade [data-show]{grid-area:1/1;visibility:hidden}
+.hussam-arcade[data-stage="old"] [data-show~="old"],.hussam-arcade[data-stage="verdict"] [data-show~="verdict"],.hussam-arcade[data-stage="new"] [data-show~="new"]{visibility:visible;animation:arcade-swap .5s cubic-bezier(.16,1,.3,1) .1s both}
+@keyframes arcade-swap{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .arcade-board{position:relative;flex:none;width:min(940px,92vw,calc((100cqh - 330px) * 1.854));aspect-ratio:2000/1079;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .arcade-board.is-playable{cursor:none}
 .arcade-art{position:absolute;inset:0;width:100%;height:100%;display:block;filter:drop-shadow(0 18px 16px rgba(0,0,0,.35));pointer-events:none;user-select:none;will-change:transform}
@@ -115,23 +117,6 @@ html.hussam-en .majlis-strip{transform:scaleX(-1)}
 #pricing:not(.is-near) .majlis-rug,.hussam-palace:not(.is-near) .palace-slice,.hussam-palace:not(.is-near) .palace-art::before{background-image:none!important}
 .majlis-rug{position:absolute;inset:0;background:url('/assets/majlis/rug.webp') 0 0/100% 100% no-repeat;clip-path:inset(-4% 0 -4% calc(100% * (1 - var(--shown))))}
 .majlis-roll{position:absolute;top:50%;left:calc(100% * (1 - var(--shown)));height:104%;width:auto;max-width:none;transform:translate(-50%,-50%);opacity:var(--roll,1);filter:drop-shadow(3px 5px 4px rgba(0,0,0,.28))}
-
-
-.hussam-dallah-scene{position:absolute;inset:0;z-index:20;pointer-events:none;overflow:hidden}
-.dallah-art{position:absolute;left:50%;bottom:0;width:min(84vw,640px);height:auto;transform:translateX(-50%);overflow:visible}
-.dallah-art g,.dallah-art rect{transform-box:view-box}
-.dallah-rise{transform:translateY(640px)}
-.dallah-tilt{transform-origin:480px 380px}
-.dallah-stream{stroke-dasharray:1;stroke-dashoffset:1}
-.dallah-coffee{transform:translateY(56px)}
-.dallah-steam,.dallah-splash{opacity:0}
-
-.dallah-veil{position:absolute;inset:0;opacity:0;background:linear-gradient(to bottom,rgba(25,77,21,0) 0,rgba(25,77,21,0) 34%,#194d15 47%)}
-.dallah-flood{position:absolute;left:-10%;top:0;width:120%;height:calc(100% + 120px);transform:translateY(120%);background-repeat:repeat-x,no-repeat;background-size:600px 90px,100% 100%;background-position:0 0,0 88px;animation:dallah-drift 7s linear infinite}
-.dallah-flood-gold{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 90' preserveAspectRatio='none'%3E%3Cpath d='M0 45C100 0 200 0 300 45S500 90 600 45V90H0z' fill='%23efc10b'/%3E%3Cpath d='M0 45C100 0 200 0 300 45S500 90 600 45' fill='none' stroke='%23111' stroke-width='6'/%3E%3C/svg%3E"),linear-gradient(#efc10b,#efc10b)}
-.dallah-flood-cream{animation-duration:9s;animation-direction:reverse;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 90' preserveAspectRatio='none'%3E%3Cpath d='M0 45C100 0 200 0 300 45S500 90 600 45V90H0z' fill='%23fcf5e2'/%3E%3Cpath d='M0 45C100 0 200 0 300 45S500 90 600 45' fill='none' stroke='%23111' stroke-width='6'/%3E%3C/svg%3E"),linear-gradient(#fcf5e2,#fcf5e2)}
-@keyframes dallah-drift{to{background-position:600px 0,0 88px}}
-@media(prefers-reduced-motion:reduce){.dallah-flood{animation:none}}
 
 @media(max-width:809px){
   #notification-section .hussam-scroll-video { object-position:37% center; }
@@ -195,11 +180,11 @@ html.hussam-en .palace-room{font-size:11px;line-height:1.6;text-transform:upperc
  .palace-figure{top:252px;transform:translateX(-50%)}
  .palace-captions{top:auto;bottom:max(16px,env(safe-area-inset-bottom));left:16px;right:16px;width:auto;height:auto;display:grid}
  .palace-captions li{position:static;grid-area:1/1;transform:none}
- .palace-captions button,.palace-captions li.is-shown button{width:auto;max-width:none;padding:12px 18px 14px;border:2px solid #191916;border-radius:10px;background:#fcf5e2;box-shadow:5px 5px 0 #191916;font-size:17px;text-align:center;opacity:0;transform:translateY(10px);transition:opacity .2s ease-in,transform .2s ease-in}
- .palace-captions li.is-current button{opacity:1;transform:none;transition:opacity .36s cubic-bezier(.16,1,.3,1) .08s,transform .5s cubic-bezier(.16,1,.3,1) .08s}
+ .palace-captions button,.palace-captions li.is-shown button{width:auto;max-width:none;padding:12px 18px 14px;border:2px solid #191916;border-radius:10px;background:#fcf5e2;box-shadow:5px 5px 0 #191916;font-size:17px;text-align:center;opacity:0;transform:translateY(10px);transition:opacity .16s ease-in,transform .16s ease-in}
+ .palace-captions li.is-current button{opacity:1;transform:none;transition:opacity .36s cubic-bezier(.16,1,.3,1) .2s,transform .5s cubic-bezier(.16,1,.3,1) .2s}
  
- .palace-captions:has(li.is-hot) li.is-current:not(.is-hot) button{opacity:0;transform:translateY(10px);transition:opacity .2s ease-in,transform .2s ease-in}
- .palace-captions li.is-hot button{opacity:1;transform:none;transition:opacity .36s cubic-bezier(.16,1,.3,1) .08s,transform .5s cubic-bezier(.16,1,.3,1) .08s}
+ .palace-captions:has(li.is-hot) li.is-current:not(.is-hot) button{opacity:0;transform:translateY(10px);transition:opacity .16s ease-in,transform .16s ease-in}
+ .palace-captions li.is-hot button{opacity:1;transform:none;transition:opacity .36s cubic-bezier(.16,1,.3,1) .2s,transform .5s cubic-bezier(.16,1,.3,1) .2s}
  .palace-captions button::before{display:none}
 }
 @media(prefers-reduced-motion:reduce){.palace-captions button,.palace-captions button::before,.palace-slice{transition:none!important}.hussam-palace *{animation:none!important}}
@@ -260,7 +245,7 @@ html.hussam-ar .hussam-cta{direction:rtl}
 #how-it-works{margin-top:-100svh!important;padding-top:0!important;padding-bottom:0!important;scroll-margin-top:-100svh}
 @media(max-width:809px){#how-it-works{padding-top:0!important;padding-bottom:0!important}}
 
-#maze{border-radius:clamp(36px,5vw,72px) clamp(36px,5vw,72px) 0 0}
+#maze,#why-hussam{border-radius:clamp(36px,5vw,72px) clamp(36px,5vw,72px) 0 0}
 @media(prefers-reduced-motion:reduce){#how-it-works{padding-top:100svh!important}}
 
 

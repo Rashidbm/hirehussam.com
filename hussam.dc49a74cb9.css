@@ -116,7 +116,8 @@ html.hussam-ar #testimonial .roshan-paper ol{list-style:arabic-indic}
 #testimonial .roshan-paper.is-unrolling .roshan-done{animation:roshan-stamp .32s .42s cubic-bezier(.3,1.5,.5,1) both}
 @keyframes roshan-stamp{from{opacity:0;transform:scale(1.7) rotate(-14deg)}to{opacity:.92;transform:scale(1) rotate(-14deg)}}
 #testimonial .roshan-house{margin:0;width:min(42vw,calc(82svh * 1856 / 2304),560px)}
-#testimonial .roshan-frame{position:relative;aspect-ratio:1856/2304;overflow:hidden;border:2px solid #141414;border-radius:14px;box-shadow:6px 6px 0 #141414;background:#7974bd}
+
+#testimonial .roshan-frame{position:relative;aspect-ratio:1856/2304;overflow:hidden;border:2px solid #141414;border-radius:14px;box-shadow:6px 6px 0 #141414;background:#7974bd url(data:image/webp;base64,UklGRn4CAABXRUJQVlA4IHICAACQCwCdASooADIAPrVMoUunJCMhqBVdUOAWiUAWo4JHnLVjMBAuIP03OWbVPlwIPX2+nx1HqVqfWIf+dfAyPt9e6RS+ayJptThnnK7be8PZWvACEcH5bXyJtGsO+LzvUOTw9vb/gADpcvJKF2MR7vGyu570uEt/y513Jkcej8cLE65sqTQ45zGisBq//v48ongGQy2uNaOPw/458vvRAZGgjkZaJOhoF7luV1hSOBZM2PAB6yrW2Qz7Dfd6+xTBTSwO//4lRSPZBT4RqW3sln5MgmGKfYDujlY1Z2CTB4/LjNux6+4r8LndF+zOkxyEhweDEW2LK9u8g1UguzMn5aJ2gOZKcDXUMIsRpgDhruk/venDKoqlO5/GGO8/+fSTxiQRDqKL5PU57fZprk/FghHbfh5YsWWcicoAcpIPWB9WmqueECtGBgCXZEr8VuJsfuaVCXe5EVeVF/5wnD3IyfrrsyA9bt/8IyjM/KpR6/kXHvPa1Y/ZMfjlpEK0yBYKAm4fC180+eiiDMvNOV7Am2dkh5+mBkXMIU6iJJWbuJ3af8dKH6CW2NtOWNGwGiV6x5pqyVJgFDIQ8Rhf6yQS6SMrzz044Upkwlv0L7zV+ekeKArI5O2pnwAN0daPQ1aajhbgoo8pXhCGjPEjjJRlwjf54aYqN/mKKFVGt92Es33aIQVxbkqoLsHbnPjZtKHGoe41VvqtIa6nr0cgyjT545I4sa5qvwQ9XY/WR8SoTjoJQO41+bvg7X9sZg6Uat2d5XIDGl1wQ8n2wgbdVyvtmZ0FK5szLjnrA264hfEt2oZUEr3syccBs89cOi5+2APtggAAAA==) 0 0/100% 100% no-repeat}
 #testimonial .roshan-frame>img{position:absolute;inset:0;width:100%;height:100%;display:block}
 #testimonial .roshan-night{opacity:0;transition:opacity 1.8s ease}
 #testimonial .roshan-frame.is-lit .roshan-night{opacity:1}
