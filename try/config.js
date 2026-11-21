@@ -1,2 +1,2 @@
-// Where the Hussam server answers. Change this line when the server moves to a fixed address.
-window.HUSSAM_API = "https://remarkable-sail-determine-personals.trycloudflare.com";
+// Where the Hussam server answers, in order: the fixed address first, the host's own as a fallback.
+window.HUSSAM_API = ["https://mcp.hirehussam.com", "https://hussam-production.up.railway.app"];

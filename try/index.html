@@ -71,8 +71,9 @@ button.ghost{background:var(--card);color:var(--ink);font-size:14.5px;padding:6p
 <script>
 const $=(id)=>document.getElementById(id);
 $('btn').onclick=async()=>{ $('btn').disabled=true; $('err').hidden=true;
- try{ const r=await fetch((window.HUSSAM_API||'')+'/api/try',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}); const d=await r.json();
-  if(!r.ok||!d.link) throw new Error(d.error||'ما قدرنا نجهّز الرابط. جرّب بعد شوي.');
+ try{ const bases=[].concat(window.HUSSAM_API||''); let d=null, last=null;
+  for(const base of bases){ try{ const r=await fetch(base+'/api/try',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}); d=await r.json(); if(r.ok&&d.link) break; last=d.error; d=null; if(r.status===429) break; }catch(e){ d=null; } }
+  if(!d||!d.link) throw new Error(last||'ما قدرنا نجهّز الرابط. جرّب بعد شوي.');
   $('link').textContent=d.link; $('get').hidden=true; $('got').hidden=false;
  }catch(e){ $('err').textContent=e.message; $('err').hidden=false; $('btn').disabled=false; } };
 document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{ try{ await navigator.clipboard.writeText($(b.dataset.copy).textContent.trim()); if(b.dataset.copy==='link'){ $('copied').hidden=false; } b.textContent=b.dataset.copy==='en'?'Copied':'انتسخ'; }catch(e){} });
