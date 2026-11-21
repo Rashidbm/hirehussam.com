@@ -1,0 +1,79 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>جرّب حسام</title>
+<link rel="icon" href="/assets/hussam-icon.png">
+<meta name="description" content="جرّب حسام على علامتك: يبحث في اللي ينجح في مجالك ويبني لك الطريق كامل.">
+<meta name="robots" content="noindex">
+<style>
+@font-face{font-family:HDisplay;src:url('/assets/fonts/ThmanyahSerifDisplay_Bold-s.p.1zmaqi-axje4b.ttf') format('truetype');font-weight:700;font-display:swap}
+@font-face{font-family:HDisplay;src:url('/assets/fonts/ThmanyahSerifDisplay_Black-s.p.22zmujshwwe2i.ttf') format('truetype');font-weight:900;font-display:swap}
+@font-face{font-family:HText;src:url('/assets/fonts/ThmanyahSerifText_Regular-s.p.2n6_s6dt_a8ld.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:HText;src:url('/assets/fonts/ThmanyahSerifText_Bold-s.p.2sik-b6u0jr2y.ttf') format('truetype');font-weight:700;font-display:swap}
+:root{--ink:#111;--soft:#6b6457;--page:#fcf5e1;--card:#fffdf5;--well:#fff9eb;--red:#d93928;--rule:#b9ad97}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:HText,"IBM Plex Sans Arabic",system-ui,serif;background:var(--page);color:var(--ink);line-height:1.75;padding:28px 16px 72px}
+main{max-width:600px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px}
+.brand{font-family:HDisplay,serif;font-weight:700;font-size:34px;color:var(--red);line-height:1.2}
+.tag{font-size:14px;color:var(--soft);border:1.5px solid var(--ink);border-radius:9px;padding:2px 10px;background:var(--card)}
+h1{font-family:HDisplay,serif;font-weight:900;font-size:44px;line-height:1.2;margin-bottom:12px}
+.lead{color:var(--soft);font-size:18px;margin-bottom:32px}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:12px;box-shadow:4px 4px 0 var(--ink);padding:22px 22px 24px;margin-bottom:20px}
+h2{font-family:HDisplay,serif;font-weight:700;font-size:23px;display:flex;align-items:center;gap:12px;margin-bottom:10px;line-height:1.3}
+.n{display:inline-flex;width:34px;height:34px;border-radius:50%;background:var(--red);color:#fff;align-items:center;justify-content:center;font-family:HText,serif;font-weight:700;font-size:17px;flex:none}
+p,li{font-size:16.5px;color:var(--soft)}
+li b,p b{color:var(--ink)}
+ol{padding-inline-start:22px}
+li{margin:4px 0}
+button{font-family:HText,serif;font-weight:700;font-size:17px;border:2px solid var(--ink);border-radius:9px;padding:10px 22px;cursor:pointer;background:var(--red);color:#fff;box-shadow:3px 3px 0 var(--ink)}
+button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+button:disabled{opacity:.6}
+button.ghost{background:var(--card);color:var(--ink);font-size:14.5px;padding:6px 14px;box-shadow:2px 2px 0 var(--ink)}
+.box{direction:ltr;text-align:left;font-family:ui-monospace,Menlo,monospace;font-size:13px;background:var(--well);border:1.5px dashed var(--rule);border-radius:9px;padding:12px;word-break:break-all;margin:12px 0;color:var(--ink)}
+.say{background:var(--well);border:1.5px dashed var(--rule);border-radius:9px;padding:12px 14px;margin:12px 0 10px;color:var(--ink);font-size:16px}
+.say[dir=ltr]{text-align:left;font-family:HText,Georgia,serif}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.err{color:var(--red);margin-top:10px}
+.muted{font-size:14.5px;color:var(--soft);margin-top:18px}
+[hidden]{display:none}
+@media (max-width:480px){h1{font-size:36px}.brand{font-size:30px}}
+</style></head><body><main>
+<div class="top"><a class="brand" href="/" style="text-decoration:none">حسام</a><span class="tag">نسخة تجريبية</span></div>
+<h1>جرّب حسام على علامتك</h1>
+<p class="lead">حسام يقرأ علامتك، يبحث في اللي ينجح في مجالك بالأرقام، ويبني لك الطريق كامل: وش تنشر، مين ينشر عنك، وين يروح الرابط ووش تصلح فيه، وكيف تحسب المبيعات. ويسوي لك أول القطع جاهزة. يشتغل داخل Claude حقك.</p>
+
+<div class="card">
+<h2><span class="n">١</span>خذ رابطك</h2>
+<p>رابط خاص فيك. لا تشاركه مع أحد.</p>
+<div id="get" style="margin-top:14px"><button id="btn">أعطني رابطي</button><p class="err" id="err" hidden></p></div>
+<div id="got" hidden><div class="box" id="link"></div><div class="row"><button class="ghost" data-copy="link">انسخ الرابط</button><span id="copied" class="muted" hidden style="margin:0">انتسخ</span></div></div>
+</div>
+
+<div class="card">
+<h2><span class="n">٢</span>أضفه في Claude</h2>
+<ol>
+<li>افتح Claude، ثم <b>Settings</b> ← <b>Connectors</b>.</li>
+<li>اضغط <b>Add custom connector</b>، سمّه <b>Hussam</b>، والصق الرابط، ثم <b>Add</b>.</li>
+<li>افتح محادثة جديدة وتأكد إن Hussam مفعّل فيها.</li>
+</ol>
+</div>
+
+<div class="card">
+<h2><span class="n">٣</span>قل له علامتك بس</h2>
+<p>حسام يعرف وش يسوي: يبني لك الطريق كامل ويسوي أول القطع. ما تحتاج تشرح له.</p>
+<div class="say" id="ar">علامتي [رابط الموقع]، وحسابنا [رابط تيك توك أو إنستقرام].</div>
+<div class="row"><button class="ghost" data-copy="ar">انسخ بالعربي</button></div>
+<div class="say" id="en" dir="ltr">My brand is [website]. Our account is [TikTok or Instagram link].</div>
+<div class="row"><button class="ghost" data-copy="en">Copy in English</button></div>
+<p class="muted">أول جواب خلال دقائق، والبحث الكامل يكمّل وهو شغّال. حسام ما ينشر شي ولا يطلب كلمات مرور.</p>
+</div>
+</main>
+<script src="/try/config.js"></script>
+<script>
+const $=(id)=>document.getElementById(id);
+$('btn').onclick=async()=>{ $('btn').disabled=true; $('err').hidden=true;
+ try{ const r=await fetch((window.HUSSAM_API||'')+'/api/try',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}); const d=await r.json();
+  if(!r.ok||!d.link) throw new Error(d.error||'ما قدرنا نجهّز الرابط. جرّب بعد شوي.');
+  $('link').textContent=d.link; $('get').hidden=true; $('got').hidden=false;
+ }catch(e){ $('err').textContent=e.message; $('err').hidden=false; $('btn').disabled=false; } };
+document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{ try{ await navigator.clipboard.writeText($(b.dataset.copy).textContent.trim()); if(b.dataset.copy==='link'){ $('copied').hidden=false; } b.textContent=b.dataset.copy==='en'?'Copied':'انتسخ'; }catch(e){} });
+</script></body></html>
